@@ -40,8 +40,8 @@ module "transport_load_balancer_configs" {
   install_dependencies = var.install_dependencies
   control_plane = var.control_plane
   load_balancer = {
-    cluster = var.name
-    node_id = var.name
+    cluster = var.load_balancer.cluster != "" ? var.load_balancer.cluster : var.name
+    node_id = var.load_balancer.node_id != "" ? var.load_balancer.node_id : var.name
   }
 }
 

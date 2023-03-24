@@ -102,6 +102,18 @@ variable "ssh_host_key_ecdsa" {
   }
 }
 
+variable "load_balancer" {
+  description = "Properties of the load balancer"
+  type = object({
+    cluster = string
+    node_id = string
+  })
+  default     = {
+    cluster = ""
+    node_id = ""
+  }
+}
+
 variable "control_plane" {
   description = "Properties of the control plane"
   type = object({
