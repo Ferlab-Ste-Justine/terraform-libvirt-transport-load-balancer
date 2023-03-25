@@ -4,7 +4,7 @@ This terraform module provisions an envoy load balancer with an integrated contr
 
 Additionally, the load balancer supports an ssh tunneling setup where a tunnel user will be setup with access limited to tunneling on the server's local **127.0.0.1** address. To make this tunneling arrangement work securely, the envoy load balancer should be configured in etcd to listen only on the **127.0.0.1** address as well.
 
-The following related project helps with the configuration of the load balancer in etcd: https://github.com/Ferlab-Ste-Justine/terraform-libvirt-transport-load-balancer
+The following related project helps with the configuration of the load balancer in etcd: https://github.com/Ferlab-Ste-Justine/terraform-etcd-envoy-transport-configuration
 
 # Usage
 
@@ -57,6 +57,20 @@ The module takes the following variables as input:
       - **key**: Client key to use to authentify against etcd. Can be empty is password authentication is used.
       - **username**: Username to use for password authentication. Can be empty if certificate authentication is used.
       - **password**: Password to use for password authentication. Can be empty is certificate authentication is used.
+- **fluentd**: Optional fluend configuration to securely route logs to a fluentd node using the forward plugin. It has the following keys:
+  - **enabled**: If set the false (the default), fluentd will not be installed.
+  - **load_balancer_tag**: Tag to assign to logs coming from envoy
+  - **control_plane_tag**: Tag to assign to logs coming from the control plane
+  - **node_exporter_tag** Tag to assign to logs coming from the prometheus node exporter
+  - **forward**: Configuration for the forward plugin that will talk to the external fluend node. It has the following keys:
+    - **domain**: Ip or domain name of the remote fluend node.
+    - **port**: Port the remote fluend node listens on
+    - **hostname**: Unique hostname identifier for the vm
+    - **shared_key**: Secret shared key with the remote fluentd node to authentify the client
+    - **ca_cert**: CA certificate that signed the remote fluentd node's server certificate (used to authentify it)
+  - **buffer**: Configuration for the buffering of outgoing fluentd traffic
+    - **customized**: Set to false to use the default buffering configurations. If you wish to customize it, set this to true.
+    - **custom_value**: Custom buffering configuration to provide that will override the default one. Should be valid fluentd configuration syntax, including the opening and closing ```<buffer>``` tags.
 - **chrony**: Optional chrony configuration for when you need a more fine-grained ntp setup on your vm. It is an object with the following fields:
   - **enabled**: If set the false (the default), chrony will not be installed and the vm ntp settings will be left to default.
   - **servers**: List of ntp servers to sync from with each entry containing two properties, **url** and **options** (see: https://chrony.tuxfamily.org/doc/4.2/chrony.conf.html#server)
