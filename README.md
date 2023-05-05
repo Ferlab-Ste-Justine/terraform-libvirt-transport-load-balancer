@@ -87,4 +87,11 @@ The module takes the following variables as input:
 - **ssh_host_key_ecdsa**: Predefined ecdsa ssh host key. Can be omitted if random value is acceptable. It is an object with the following fields:
   - **public**: Public part of the ssh key.
   - **private**: Private part of the ssh key.
+- **custom_certificates**: A set of custom certificate-key pairs that can be added to the vm and configured in envoy to perform tls termination
+  - **certificate**:
+    - **path**: Path to put the certificate in
+    - **content**: Content of the certificate
+  - **key**:
+    - **path**: Path to put the key in
+    - **content**: Content of the key
 - **install_dependencies**: Whether cloud-init should install external dependencies (should be set to false if you already provide an image with the external dependencies built-in).

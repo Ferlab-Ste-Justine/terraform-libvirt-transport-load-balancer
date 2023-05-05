@@ -231,6 +231,22 @@ variable "chrony" {
   }
 }
 
+variable "custom_certificates" {
+  description = "A set of custom certificate-key pairs that can be added to the vm and configured in envoy to perform tls termination"
+  type        = list(object({
+    certificate = object({
+      path  = string
+      content = string
+    })
+    key = object({
+      path  = string
+      content = string
+    })
+  }))
+  default     = []
+}
+
+
 variable "install_dependencies" {
   description = "Whether to install all dependencies in cloud-init"
   type        = bool

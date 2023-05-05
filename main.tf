@@ -18,12 +18,12 @@ locals {
 }
 
 module "network_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//network?ref=v0.3.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//network?ref=v0.6.0"
   network_interfaces = var.macvtap_interfaces
 }
 
 module "ssh_tunnel_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//ssh-tunnel?ref=v0.3.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//ssh-tunnel?ref=v0.6.0"
   ssh_host_key_rsa = var.ssh_host_key_rsa
   ssh_host_key_ecdsa = var.ssh_host_key_ecdsa
   tunnel = {
@@ -36,7 +36,7 @@ module "ssh_tunnel_configs" {
 }
 
 module "transport_load_balancer_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//transport-load-balancer?ref=v0.3.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//transport-load-balancer?ref=v0.6.0"
   install_dependencies = var.install_dependencies
   control_plane = var.control_plane
   load_balancer = {
@@ -46,12 +46,12 @@ module "transport_load_balancer_configs" {
 }
 
 module "prometheus_node_exporter_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//prometheus-node-exporter?ref=v0.3.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//prometheus-node-exporter?ref=v0.6.0"
   install_dependencies = var.install_dependencies
 }
 
 module "chrony_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//chrony?ref=v0.3.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//chrony?ref=v0.6.0"
   install_dependencies = var.install_dependencies
   chrony = {
     servers  = var.chrony.servers
@@ -61,7 +61,7 @@ module "chrony_configs" {
 }
 
 module "fluentd_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//fluentd?ref=v0.3.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//fluentd?ref=v0.6.0"
   install_dependencies = var.install_dependencies
   fluentd = {
     docker_services = []
@@ -96,6 +96,7 @@ locals {
             ssh_admin_public_key = var.ssh_admin_public_key
             ssh_admin_user = var.ssh_admin_user
             admin_user_password = var.admin_user_password
+            custom_certificates = var.custom_certificates
           }
         )
       },
