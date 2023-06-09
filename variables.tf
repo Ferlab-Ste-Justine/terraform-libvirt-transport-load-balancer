@@ -159,6 +159,69 @@ variable "ssh_tunnel" {
   }
 }
 
+variable "fluentbit" {
+  description = "Fluent-bit configuration"
+  sensitive = true
+  type = object({
+    enabled = bool
+    load_balancer_tag = string
+    control_plane_tag = string
+    node_exporter_tag = string
+    metrics = object({
+      enabled = bool
+      port    = number
+    })
+    forward = object({
+      domain = string
+      port = number
+      hostname = string
+      shared_key = string
+      ca_cert = string
+    })
+    etcd = object({
+      enabled = bool
+      key_prefix = string
+      endpoints = list(string)
+      ca_certificate = string
+      client = object({
+        certificate = string
+        key = string
+        username = string
+        password = string
+      })
+    })
+  })
+  default = {
+    enabled = false
+    load_balancer_tag = ""
+    control_plane_tag = ""
+    node_exporter_tag = ""
+    metrics = {
+      enabled = false
+      port = 0
+    }
+    forward = {
+      domain = ""
+      port = 0
+      hostname = ""
+      shared_key = ""
+      ca_cert = ""
+    }
+    etcd = {
+      enabled = false
+      key_prefix = ""
+      endpoints = []
+      ca_certificate = ""
+      client = {
+        certificate = ""
+        key = ""
+        username = ""
+        password = ""
+      }
+    }
+  }
+}
+
 variable "fluentd" {
   description = "Fluentd configurations"
   sensitive   = true

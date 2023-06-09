@@ -80,28 +80,28 @@ module "chrony_configs" {
   }
 }
 
-module "fluentd_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//fluentd?ref=v0.8.0"
+module "fluentbit_configs" {
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//fluent-bit?ref=v0.8.0"
   install_dependencies = var.install_dependencies
-  fluentd = {
-    docker_services = []
+  fluentbit = {
+    metrics = var.fluentbit.metrics
     systemd_services = [
       {
-        tag     = var.fluentd.load_balancer_tag
-        service = "transport-load-balancer"
+        tag     = var.fluentbit.load_balancer_tag
+        service = "transport-load-balancer.service"
       },
       {
-        tag     = var.fluentd.control_plane_tag
-        service = "transport-control-plane"
+        tag     = var.fluentbit.control_plane_tag
+        service = "transport-control-plane.service"
       },
       {
-        tag     = var.fluentd.node_exporter_tag
-        service = "node-exporter"
+        tag     = var.fluentbit.node_exporter_tag
+        service = "node-exporter.service"
       }
     ]
-    forward = var.fluentd.forward,
-    buffer = var.fluentd.buffer
+    forward = var.fluentbit.forward
   }
+  etcd    = var.fluentbit.etcd
 }
 
 locals {
@@ -141,11 +141,11 @@ locals {
       content_type = "text/cloud-config"
       content      = module.chrony_configs.configuration
     }] : [],
-    var.fluentd.enabled ? [{
-      filename     = "fluentd.cfg"
+    var.fluentbit.enabled ? [{
+      filename     = "fluent_bit.cfg"
       content_type = "text/cloud-config"
-      content      = module.fluentd_configs.configuration
-    }] : [],
+      content      = module.fluentbit_configs.configuration
+    }] : []
   )
 }
 
