@@ -149,7 +149,7 @@ locals {
   )
 }
 
-data "template_cloudinit_config" "user_data" {
+data "cloudinit_config" "user_data" {
   gzip = false
   base64_encode = false
   dynamic "part" {
@@ -162,14 +162,14 @@ data "template_cloudinit_config" "user_data" {
   }
 }
 
-resource "libvirt_cloudinit_disk" "k8_node" {
+resource "libvirt_cloudinit_disk" "transport_load_balancer" {
   name           = local.cloud_init_volume_name
-  user_data      = data.template_cloudinit_config.user_data.rendered
+  user_data      = data.cloudinit_config.user_data.rendered
   network_config = module.network_configs.configuration
   pool           = var.cloud_init_volume_pool
 }
 
-resource "libvirt_domain" "k8_node" {
+resource "libvirt_domain" "transport_load_balancer" {
   name = var.name
 
   cpu {
@@ -197,7 +197,7 @@ resource "libvirt_domain" "k8_node" {
 
   autostart = true
 
-  cloudinit = libvirt_cloudinit_disk.k8_node.id
+  cloudinit = libvirt_cloudinit_disk.transport_load_balancer.id
 
   //https://github.com/dmacvicar/terraform-provider-libvirt/blob/main/examples/v0.13/ubuntu/ubuntu-example.tf#L61
   console {
