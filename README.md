@@ -60,7 +60,7 @@ The module takes the following variables as input:
       - **key**: Client key to use to authentify against etcd. Can be empty is password authentication is used.
       - **username**: Username to use for password authentication. Can be empty if certificate authentication is used.
       - **password**: Password to use for password authentication. Can be empty is certificate authentication is used.
-- **fluentbit**: Optional fluend configuration to securely route logs to a fluend/fluent-bit node using the forward plugin. Alternatively, configuration can be 100% dynamic by specifying the parameters of an etcd store to fetch the configuration from. It has the following keys:
+- **fluentbit**: Optional fluent-bit configuration to securely route logs to a fluend/fluent-bit node using the forward plugin. Alternatively, configuration can be 100% dynamic by specifying the parameters of an etcd store or git repo to fetch the configuration from. It has the following keys:
   - **enabled**: If set the false (the default), fluent-bit will not be installed.
   - **load_balancer_tag**: Tag to assign to logs coming from envoy
   - **control_plane_tag**: Tag to assign to logs coming from the control plane
@@ -71,11 +71,15 @@ The module takes the following variables as input:
     - **hostname**: Unique hostname identifier for the vm
     - **shared_key**: Secret shared key with the remote fluentd node to authentify the client
     - **ca_cert**: CA certificate that signed the remote fluentd node's server certificate (used to authentify it)
+**fluentbit_dynamic_config**: Optional configuration to update fluent-bit configuration dynamically either from an etcd key prefix or a path in a git repo.
+  - **enabled**: Boolean flag to indicate whether dynamic configuration is enabled at all. If set to true, configurations will be set dynamically. The default configurations can still be referenced as needed by the dynamic configuration. They are at the following paths:
+    - **Global Service Configs**: /etc/fluent-bit-customization/default-config/service.conf
+    - **Default Variables**: /etc/fluent-bit-customization/default-config/default-variables.conf
+    - **Systemd Inputs**: /etc/fluent-bit-customization/default-config/inputs.conf
+    - **Forward Output For All Inputs**: /etc/fluent-bit-customization/default-config/output-all.conf
+    - **Forward Output For Default Inputs Only**: /etc/fluent-bit-customization/default-config/output-default-sources.conf
+  - **source**: Indicates the source of the dynamic config. Can be either **etcd** or **git**.
   - **etcd**: Parameters to fetch fluent-bit configurations dynamically from an etcd cluster. It has the following keys:
-    - **enabled**: If set to true, configurations will be set dynamically. The default configurations can still be referenced as needed by the dynamic configuration. They are at the following paths:
-      - **Global Service Configs**: /etc/fluent-bit-customization/default-config/fluent-bit-service.conf
-      - **Systemd Inputs**: /etc/fluent-bit-customization/default-config/fluent-bit-inputs.conf
-      - **Forward Output**: /etc/fluent-bit-customization/default-config/fluent-bit-output.conf
     - **key_prefix**: Etcd key prefix to search for fluent-bit configuration
     - **endpoints**: Endpoints of the etcd cluster. Endpoints should have the format `<ip>:<port>`
     - **ca_certificate**: CA certificate against which the server certificates of the etcd cluster will be verified for authenticity
@@ -84,6 +88,14 @@ The module takes the following variables as input:
       - **key**: Client private tls key to authentify with. To be used for certificate authentication.
       - **username**: Client's username. To be used for username/password authentication.
       - **password**: Client's password. To be used for username/password authentication.
+  - **git**: Parameters to fetch fluent-bit configurations dynamically from an git repo. It has the following keys:
+    - **repo**: Url of the git repository. It should have the ssh format.
+    - **ref**: Git reference (usually branch) to checkout in the repository
+    - **path**: Path to sync from in the git repository. If the empty string is passed, syncing will happen from the root of the repository.
+    - **trusted_gpg_keys**: List of trusted gpp keys to verify the signature of the top commit. If an empty list is passed, the commit signature will not be verified.
+    - **auth**: Authentication to the git server. It should have the following keys:
+      - **client_ssh_key** Private client ssh key to authentication to the server.
+      - **server_ssh_fingerprint**: Public ssh fingerprint of the server that will be used to authentify it.
 - **chrony**: Optional chrony configuration for when you need a more fine-grained ntp setup on your vm. It is an object with the following fields:
   - **enabled**: If set the false (the default), chrony will not be installed and the vm ntp settings will be left to default.
   - **servers**: List of ntp servers to sync from with each entry containing two properties, **url** and **options** (see: https://chrony.tuxfamily.org/doc/4.2/chrony.conf.html#server)

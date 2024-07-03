@@ -18,10 +18,12 @@ locals {
       hostname = null
     }]
   )
+  fluentbit_updater_etcd = var.fluentbit.enabled && var.fluentbit_dynamic_config.enabled && var.fluentbit_dynamic_config.source == "etcd"
+  fluentbit_updater_git = var.fluentbit.enabled && var.fluentbit_dynamic_config.enabled && var.fluentbit_dynamic_config.source == "git"
 }
 
 module "network_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//network?ref=v0.8.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//network?ref=v0.22.1"
   network_interfaces = concat(
     [for idx, libvirt_network in var.libvirt_networks: {
       ip = libvirt_network.ip
@@ -43,7 +45,7 @@ module "network_configs" {
 }
 
 module "ssh_tunnel_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//ssh-tunnel?ref=v0.8.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//ssh-tunnel?ref=v0.22.1"
   ssh_host_key_rsa = var.ssh_host_key_rsa
   ssh_host_key_ecdsa = var.ssh_host_key_ecdsa
   tunnel = {
@@ -56,7 +58,7 @@ module "ssh_tunnel_configs" {
 }
 
 module "transport_load_balancer_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//transport-load-balancer?ref=v0.8.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//transport-load-balancer?ref=v0.22.1"
   install_dependencies = var.install_dependencies
   control_plane = var.control_plane
   load_balancer = {
@@ -66,12 +68,12 @@ module "transport_load_balancer_configs" {
 }
 
 module "prometheus_node_exporter_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//prometheus-node-exporter?ref=v0.8.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//prometheus-node-exporter?ref=v0.22.1"
   install_dependencies = var.install_dependencies
 }
 
 module "chrony_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//chrony?ref=v0.8.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//chrony?ref=v0.22.1"
   install_dependencies = var.install_dependencies
   chrony = {
     servers  = var.chrony.servers
@@ -80,8 +82,62 @@ module "chrony_configs" {
   }
 }
 
+module "fluentbit_updater_etcd_configs" {
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//configurations-auto-updater?ref=v0.22.1"
+  install_dependencies = var.install_dependencies
+  filesystem = {
+    path = "/etc/fluent-bit-customization/dynamic-config"
+    files_permission = "700"
+    directories_permission = "700"
+  }
+  etcd = {
+    key_prefix = var.fluentbit_dynamic_config.etcd.key_prefix
+    endpoints = var.fluentbit_dynamic_config.etcd.endpoints
+    connection_timeout = "60s"
+    request_timeout = "60s"
+    retry_interval = "4s"
+    retries = 15
+    auth = {
+      ca_certificate = var.fluentbit_dynamic_config.etcd.ca_certificate
+      client_certificate = var.fluentbit_dynamic_config.etcd.client.certificate
+      client_key = var.fluentbit_dynamic_config.etcd.client.key
+      username = var.fluentbit_dynamic_config.etcd.client.username
+      password = var.fluentbit_dynamic_config.etcd.client.password
+    }
+  }
+  notification_command = {
+    command = ["/usr/local/bin/reload-fluent-bit-configs"]
+    retries = 30
+  }
+  naming = {
+    binary = "fluent-bit-config-updater"
+    service = "fluent-bit-config-updater"
+  }
+  user = "fluentbit"
+}
+
+module "fluentbit_updater_git_configs" {
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//gitsync?ref=v0.22.1"
+  install_dependencies = var.install_dependencies
+  filesystem = {
+    path = "/etc/fluent-bit-customization/dynamic-config"
+    files_permission = "700"
+    directories_permission = "700"
+  }
+  git = var.fluentbit_dynamic_config.git
+  notification_command = {
+    command = ["/usr/local/bin/reload-fluent-bit-configs"]
+    retries = 30
+  }
+  naming = {
+    binary = "fluent-bit-config-updater"
+    service = "fluent-bit-config-updater"
+  }
+  user = "fluentbit"
+}
+
 module "fluentbit_configs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//fluent-bit?ref=v0.8.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-cloudinit-templates.git//fluent-bit?ref=v0.22.1"
   install_dependencies = var.install_dependencies
   fluentbit = {
     metrics = var.fluentbit.metrics
@@ -101,7 +157,10 @@ module "fluentbit_configs" {
     ]
     forward = var.fluentbit.forward
   }
-  etcd    = var.fluentbit.etcd
+  dynamic_config = {
+    enabled = var.fluentbit_dynamic_config.enabled
+    entrypoint_path = "/etc/fluent-bit-customization/dynamic-config/index.conf"
+  }
 }
 
 locals {
@@ -140,6 +199,16 @@ locals {
       filename     = "chrony.cfg"
       content_type = "text/cloud-config"
       content      = module.chrony_configs.configuration
+    }] : [],
+    local.fluentbit_updater_etcd ? [{
+      filename     = "fluent_bit_updater.cfg"
+      content_type = "text/cloud-config"
+      content      = module.fluentbit_updater_etcd_configs.configuration
+    }] : [],
+    local.fluentbit_updater_git ? [{
+      filename     = "fluent_bit_updater.cfg"
+      content_type = "text/cloud-config"
+      content      = module.fluentbit_updater_git_configs.configuration
     }] : [],
     var.fluentbit.enabled ? [{
       filename     = "fluent_bit.cfg"
