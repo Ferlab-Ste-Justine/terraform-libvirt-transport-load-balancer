@@ -23,13 +23,13 @@ variable "volume_id" {
 variable "libvirt_networks" {
   description = "Parameters of libvirt network connections if a libvirt networks are used."
   type = list(object({
-    network_name = string
-    network_id = string
+    network_name = optional(string, "")
+    network_id = optional(string, "")
     prefix_length = string
     ip = string
     mac = string
-    gateway = string
-    dns_servers = list(string)
+    gateway = optional(string, "")
+    dns_servers = optional(list(string), [])
   }))
   default = []
 }
@@ -41,8 +41,8 @@ variable "macvtap_interfaces" {
     prefix_length = string
     ip            = string
     mac           = string
-    gateway       = string
-    dns_servers   = list(string)
+    gateway       = optional(string, "")
+    dns_servers   = optional(list(string), [])
   }))
   default = []
 }
@@ -105,31 +105,28 @@ variable "load_balancer" {
   type = object({
     cluster = string
     node_id = string
+    log_level = optional(string, "info")
   })
-  default     = {
-    cluster = ""
-    node_id = ""
-  }
 }
 
 variable "control_plane" {
   description = "Properties of the control plane"
   type = object({
-    log_level        = string
-    version_fallback = string
+    log_level        = optional(string, "info")
+    version_fallback = optional(string, "etcd")
     server           = object({
       port                = number
       max_connections     = number
-      keep_alive_time     = string
-      keep_alive_timeout  = string
-      keep_alive_min_time = string
+      keep_alive_time     = optional(string, "30s")
+      keep_alive_timeout  = optional(string, "5s")
+      keep_alive_min_time = optional(string, "30s")
     })
     etcd        = object({
       key_prefix         = string
       endpoints          = list(string)
-      connection_timeout = string
-      request_timeout    = string
-      retries            = number
+      connection_timeout = optional(string, "30s")
+      request_timeout    = optional(string, "30s")
+      retries            = optional(number, 10)
       ca_certificate     = string
       client             = object({
         certificate = string
@@ -166,9 +163,12 @@ variable "fluentbit" {
     load_balancer_tag = string
     control_plane_tag = string
     node_exporter_tag = string
-    metrics = object({
+    metrics = optional(object({
       enabled = bool
       port    = number
+    }), {
+      enabled = false
+      port = 0
     })
     forward = object({
       domain = string
@@ -202,7 +202,7 @@ variable "fluentbit_dynamic_config" {
   type = object({
     enabled = bool
     source  = string
-    etcd    = object({
+    etcd    = optional(object({
       key_prefix     = string
       endpoints      = list(string)
       ca_certificate = string
@@ -212,8 +212,18 @@ variable "fluentbit_dynamic_config" {
         username    = string
         password    = string
       })
+    }), {
+      key_prefix     = ""
+      endpoints      = []
+      ca_certificate = ""
+      client         = {
+        certificate = ""
+        key         = ""
+        username    = ""
+        password    = ""
+      }
     })
-    git     = object({
+    git     = optional(object({
       repo             = string
       ref              = string
       path             = string
@@ -222,6 +232,15 @@ variable "fluentbit_dynamic_config" {
         client_ssh_key         = string
         server_ssh_fingerprint = string
       })
+    }), {
+      repo             = ""
+      ref              = ""
+      path             = ""
+      trusted_gpg_keys = []
+      auth             = {
+        client_ssh_key         = ""
+        server_ssh_fingerprint = ""
+      }
     })
   })
   default = {
