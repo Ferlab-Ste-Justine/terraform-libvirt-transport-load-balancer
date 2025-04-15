@@ -96,6 +96,7 @@ The module takes the following variables as input:
     - **trusted_gpg_keys**: List of trusted gpp keys to verify the signature of the top commit. If an empty list is passed, the commit signature will not be verified.
     - **auth**: Authentication to the git server. It should have the following keys:
       - **client_ssh_key** Private client ssh key to authentication to the server.
+      - **client_ssh_user**: User to user to identify as with the git server. Can be left empty for many git providers, but some like Gitea require it.
       - **server_ssh_fingerprint**: Public ssh fingerprint of the server that will be used to authentify it.
 - **chrony**: Optional chrony configuration for when you need a more fine-grained ntp setup on your vm. It is an object with the following fields:
   - **enabled**: If set the false (the default), chrony will not be installed and the vm ntp settings will be left to default.
