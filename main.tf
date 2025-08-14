@@ -64,7 +64,7 @@ module "transport_load_balancer_configs" {
   load_balancer = {
     cluster = var.load_balancer.cluster != "" ? var.load_balancer.cluster : var.name
     node_id = var.load_balancer.node_id != "" ? var.load_balancer.node_id : var.name
-    log_level = "trace"
+    log_level = var.load_balancer.log_level
   }
 }
 

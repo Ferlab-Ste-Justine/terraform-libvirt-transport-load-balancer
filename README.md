@@ -37,9 +37,9 @@ The module takes the following variables as input:
 - **admin_user_password**: Optional password for the default sudo user of the image. Note that this will not enable ssh password connections, but it will allow you to log into the vm from the host using the **virsh console** command.
 - **ssh_admin_public_key**: Public part of the ssh key that will be used to login as the admin on the vm
 - **load_balancer**: Configuration for the envoy load balancer. It has the following keys:
-  - **log_level**: Level of the least important logs to show. Can be: trace, debug, info, warn, error, critical or off.
   - **cluster**: Name for the envoy cluter. Defaults to the node name if the empty string is passed.
   - **node_id**: Identifier envoy will use with the control plane. The control plane will also use it to find envoy's configuration in the etcd key store (by appending it to the etcd key prefix). Defaults to the node name if the empty string is passed.
+  - **log_level**: Level of the least important logs to show. Can be: trace, debug, info, warn, error, critical or off.
 - **control_plane**: Configuration for the control plane that will fetch envoy's configuration and send it to envoy. It has the following keys:
   - **log_level**: Level of the least important logs to show. Can be: debug, info, warn, error.
   - **version_fallback**: What to use to determine the version of the load balancer configuration to send to envoy if the version field is empty in the configuration. Can be: etcd (use the key version in etcd), time (use nanoseconds since epoch whenever a change is read in the configuration) or none (fail with an error if the version field is empty)
@@ -96,7 +96,7 @@ The module takes the following variables as input:
     - **trusted_gpg_keys**: List of trusted gpp keys to verify the signature of the top commit. If an empty list is passed, the commit signature will not be verified.
     - **auth**: Authentication to the git server. It should have the following keys:
       - **client_ssh_key** Private client ssh key to authentication to the server.
-      - **client_ssh_user**: User to user to identify as with the git server. Can be left empty for many git providers, but some like Gitea require it.
+      - **client_ssh_user**: User to identify as with the git server. Can be left empty for many git providers, but some like Gitea require it.
       - **server_ssh_fingerprint**: Public ssh fingerprint of the server that will be used to authentify it.
 - **chrony**: Optional chrony configuration for when you need a more fine-grained ntp setup on your vm. It is an object with the following fields:
   - **enabled**: If set the false (the default), chrony will not be installed and the vm ntp settings will be left to default.
